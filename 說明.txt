@@ -1,0 +1,65 @@
+主要的執行檔是 run.sh
+執行方式：
+    > ./run.sh
+裡面可以調整：
+    --dataset 要跑的資料集
+    --logroot log 存放位置
+    --data_root dataset 檔案所在位置
+    --n_ways 5  
+    --n_shots 1 這兩個調整訓練的規格
+    --restype 調整要訓練的 model
+    --pretrained_model_path pretrained model 的路徑
+    --learning_rate 0.001 learning rate 超參數
+    --gpus 0 要用哪顆 gpu training
+    --n_train_para 1 一次 training 的 task 數量
+    --n_train_runs 800 一個 epoch 跑的次數
+            --> 所以一個 epoch 跑的 task 數量就是 n_train_para * n_train_runs
+    --op_loss alpha 值
+    --protonet 是否是 protonet
+需要預先下載 MiniImageNet 以及 TieredImageNet 的資料集，以及一些 pretrained model weights
+可以在：https://github.com/shiyuanh/TANE 下載
+
+---
+
+兩個檔案分別是跑 ResNet12 和其他 DINO model 的
+
+---
+
+檔案編排
+
+fsor
+├── architectures
+│   ├── AttnClassifier.py
+        --> 這個是處理 prototype 以及計算 acc, auroc 的地方，做完會回傳 prototypes, acc, auroc 到 NetworkPre.py
+│   ├── NetworkPre.py
+        --> 這裡是將計算出來的 acc, auroc 做後處理以及 loss 的計算，並將 losses 回傳到 MetaTrainer.py
+這裡主要是訓練的 model 所在的地方，沒特別標明的檔案就是 model 的建構檔而已，都是從 pytorch 抓的
+
+├── dataloader
+│   ├── cifar.py
+│   ├── dataloader.py
+│   ├── mini_imagenet.py
+│   └── tiered_imagenet.py
+        --> 這是各個 dataset 的 dataloader
+
+├── logs
+
+├── models
+│   ├── fc100_resnet12.pth
+│   ├── miniImageNet_pre.pth
+│   ├── resnet12_dino.pth
+│   └── tieredImageNet_pre.pth
+        --> pretrained models 所在位置
+
+├── trainer
+│   ├── FSEval.py
+│   ├── MetaTrainer.py
+        --> 這個是 training 和 testing 會跑的程式，trainer 會幫我們一個一個 epoch 去訓練，並用 loss 更新模型，eval 會幫我們跑 testing，並將模型的表現紀錄
+
+├── run.sh
+        --> 主要要跑的檔案
+
+├── test.py
+├── train.py
+        --> run.sh 呼叫的檔案
+└── util.py
